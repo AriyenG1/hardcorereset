@@ -1,0 +1,68 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = 'dev.ariyeng1'
+
+repositories {
+    maven {
+        url = 'https://maven.nucleoid.xyz/'
+        content { includeGroup 'xyz.nucleoid' }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    implementation 'xyz.nucleoid:fantasy:0.8.4+26.3'
+    include 'xyz.nucleoid:fantasy:0.8.4+26.3'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand version: project.version }
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    withSourcesJar()
+}
+tasks.withType(JavaCompile).configureEach { options.release = 25 }
+
+tasks.register('controllerTestCompile', JavaCompile) {
+    source files('src/main/java/dev/ariyeng1/hardcorereset/RoundController.java',
+            'src/main/java/dev/ariyeng1/hardcorereset/RunState.java', fileTree('tests/java'))
+    destinationDirectory = layout.buildDirectory.dir('controller-tests')
+    classpath = files()
+    javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(25) }
+}
+tasks.register('controllerTest', JavaExec) {
+    dependsOn 'controllerTestCompile'
+    classpath = files(layout.buildDirectory.dir('controller-tests'))
+    mainClass = 'dev.ariyeng1.hardcorereset.LiveResetTest'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+}
+tasks.named('check') { dependsOn 'controllerTest' }
+tasks.named('jar') { from('LICENSES') { into 'META-INF/licenses' } }
+
+// Optional headless client for a disposable localhost server; never packaged in the mod.
+sourceSets {
+    protocolSmoke {
+        java.srcDir 'tests/server'
+        compileClasspath += sourceSets.main.runtimeClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+tasks.register('protocolSmokeClient', JavaExec) {
+    group = 'verification'
+    dependsOn 'protocolSmokeClasses'
+    classpath = sourceSets.protocolSmoke.runtimeClasspath
+    mainClass = 'ProtocolSmokeClient'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+    args providers.gradleProperty('smokeName').getOrElse('ResetTester'),
+            providers.gradleProperty('smokePort').getOrElse('25575'),
+            providers.gradleProperty('smokeSeconds').getOrElse('120')
+}
+tasks.named('check') { dependsOn 'compileProtocolSmokeJava' }
