@@ -14,13 +14,13 @@ Download the JAR or the ZIP with Fabric API from the
 
 1. Back up your server before trying the mod. Old gameplay worlds are deleted
    after a successful reset.
-2. Put `hardcorereset-1.0.1.jar` in the Fabric server's `mods/` directory alongside
+2. Put `hardcorereset-1.0.2.jar` in the Fabric server's `mods/` directory alongside
    **Fabric API 0.165.0+26.3**. Fantasy, the runtime-world library, is already
    bundled inside the mod JAR; you do not need a separate Fantasy download.
 3. Use **Java 25** and keep the vanilla Nether and End enabled. Set
    `pause-when-empty-seconds=0` in `server.properties` so a countdown can finish
    even if all players leave. The new run's game mode is survival.
-4. When updating from 1.0.0, stop the server once and replace the old mod JAR. Keep
+4. When updating from an earlier version, stop the server once and replace the old mod JAR. Keep
    the existing world and player files. Version 1.0.1 repairs dead/spectator saves
    and retired-dimension logins automatically; do not delete player data to work around it.
 5. Start the server normally. A first run is created automatically. Players join
@@ -33,8 +33,9 @@ Do not also keep duplicate copies of Fabric API or this mod in that folder.
 ## What happens during a reset
 
 - Successful totem saves do not end the run; an actual player death does.
-- All online players become spectators. The dying player is respawned
-  automatically into spectator without clicking Respawn.
+- All online players become spectators at their current locations. The dying
+  player is respawned automatically at their death position in the same dimension,
+  preserving their facing direction, without clicking Respawn.
 - Repeated deaths do not restart the countdown. New arrivals during a reset
   also become spectators.
 - Next-run generation begins during the countdown. Players remain spectators
@@ -107,7 +108,7 @@ Select JDK 25 using `JAVA_HOME`, then:
 ```
 
 Windows: `gradlew.bat build`. The installable artifact is
-`build/libs/hardcorereset-1.0.1.jar`, not the sources JAR.
+`build/libs/hardcorereset-1.0.2.jar`, not the sources JAR.
 
 The build compiles the Minecraft integration, runs 14 standalone controller/state
 tests, and compiles the optional protocol smoke client. The standalone tests can

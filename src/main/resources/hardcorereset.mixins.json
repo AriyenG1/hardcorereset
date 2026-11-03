@@ -7,7 +7,8 @@
     "EndPortalMixin",
     "RetiredWorldMixin",
     "PlayerAccess",
-    "PlayerDataMixin"
+    "PlayerDataMixin",
+    "SpectatorRespawnMixin"
   ],
   "injectors": {
     "defaultRequire": 1

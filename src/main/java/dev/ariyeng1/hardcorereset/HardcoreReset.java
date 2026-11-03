@@ -96,6 +96,11 @@ public final class HardcoreReset implements ModInitializer {
     }
 
     /** Portal mixins translate vanilla keys to the current run's dimension keys. */
+    public static boolean shouldRespawnInPlace(ServerPlayer player) {
+        return instance != null && instance.controller != null && instance.controller.frozen()
+                && player.isDeadOrDying();
+    }
+
     public static RunWorlds worldsFor(ServerLevel source) {
         return instance != null && instance.worlds != null && instance.worlds.contains(source)
                 ? instance.worlds : null;

@@ -1,0 +1,8 @@
+Hardcore Reset 1.0.2 - Minecraft 26.3
+Stop the server once and replace the old Hardcore Reset JAR in mods/.
+Keep world/player files. Requires Java 25, Fabric Loader 0.20.1+, and
+Fabric API 0.165.0+26.3. Fantasy is bundled; the ZIP includes Fabric API.
+Dying players now spectate at their death position in the same dimension.
+Other players stay where they are until the countdown ends.
+This patch was built and passed the existing controller tests; please test
+the spectator location in-game.

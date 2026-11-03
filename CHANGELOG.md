@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.2
+
+- Keep the dying player's spectator respawn in the same dimension at their death
+  position and facing direction, instead of vanilla's default world/bed spawn.
+- Keep the complete vanilla respawn lifecycle from 1.0.1. Other players remain at
+  their existing locations. Transfer to the next run still happens after the countdown.
+- Focused build checked with the existing controller tests; in-game location
+  verification is left to the user for this small patch.
+
 ## 1.0.1
 
 - Use the complete vanilla respawn handler, fixing the stale connection player,
