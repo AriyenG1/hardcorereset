@@ -1,17 +1,18 @@
-Focused spectator-location fix for Minecraft 26.3.
+Fabric compatibility update for Minecraft 26.3.
 
-The dying player now respawns as a spectator at their death position and facing
-direction in the **same run and dimension**, instead of vanilla's default spawn
-in the infrastructure world. Other players stay at their existing locations.
-Only when the countdown finishes does everyone move into the new run.
+Hardcore Reset 1.0.4 accepts Fabric API 0.165.0+26.3 and newer releases for
+Minecraft 26.3, including 0.165.2+26.3. The previous exact version requirement
+rejected newer Fabric API installations. Fabric Loader remains 0.20.1 or newer;
+Minecraft remains exactly 26.3 and Java 25 or newer is required.
 
-The complete vanilla respawn handler and login recovery from 1.0.1 are retained.
+The build dependency is pinned separately from the runtime minimum. Routine
+Fabric updates no longer require a new mod JAR solely because the version
+number changed. Future breaking API changes may still need an update.
 
-**Update:** stop the server once, replace the previous mod JAR with
-`hardcorereset-x.x.x.jar`, and restart. Keep existing world/player files.
-Requires Java 25, Fabric Loader 0.20.1+, Minecraft 26.3, and Fabric API
-0.165.0+26.3. Fantasy is bundled; the ZIP also includes Fabric API.
+Update: stop the server, replace the old mod JAR with hardcorereset-x.x.x.jar,
+and restart. Keep existing world/player files. Install one Fabric API JAR for
+Minecraft 26.3; the optional bundle includes 0.165.2+26.3. Fantasy remains bundled.
 
-Validation: build and the existing 14 controller tests. This focused patch has
-not undergone another extended live-server test; the in-game spectator-location
-check is left to the user.
+Validation: Java 25 builds with Fabric API 0.165.0+26.3 and 0.165.2+26.3,
+14 existing controller/state tests, and packaged version constraints checked
+using Fabric Loader's version matcher. No new live-server session was run.

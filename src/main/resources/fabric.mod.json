@@ -20,7 +20,7 @@
     "fabricloader": ">=0.20.1",
     "minecraft": "26.3",
     "java": ">=25",
-    "fabric-api": "0.165.0+26.3",
+    "fabric-api": ">=${fabric_api_min_version}",
     "fantasy": "0.8.4+26.3"
   },
   "icon": "assets/hardcorereset/icon.png"

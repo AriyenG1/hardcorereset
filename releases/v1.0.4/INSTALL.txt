@@ -1,0 +1,12 @@
+Hardcore Reset 1.0.4 for Minecraft 26.3
+Requires Java 25+, Fabric Loader 0.20.1+, and Fabric API 0.165.0+26.3 or newer for Minecraft 26.3.
+
+Stop the server. Replace the old Hardcore Reset JAR with hardcorereset-1.0.4.jar in mods/.
+Keep your world and player files. Fantasy is bundled inside the mod; no separate download is needed.
+Use just one Fabric API JAR. The bundle supplies fabric-api-0.165.2+26.3.jar.
+Restart the server normally. No client mod is required.
+
+Minecraft is restricted to exactly 26.3. Do not use a Fabric API build for another Minecraft version.
+Back up saves before use: successful resets delete old gameplay worlds.
+Validation: builds with both API versions, 14 controller/state tests, and Fabric version-range checks.
+No new live-server session was run for this compatibility update.

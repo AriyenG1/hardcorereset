@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4
+
+- Allow Fabric API 0.165.0+26.3 and newer instead of requiring exactly 0.165.0+26.3.
+- Keep Minecraft restricted to 26.3 and Fabric Loader at 0.20.1 or newer.
+- Build with Fabric API 0.165.2+26.3 and check both API versions in CI.
+- Separate the runtime API minimum from the pinned build dependency so future
+  dependency updates do not automatically raise the installation requirement.
+
 ## 1.0.3
 
 - Add the supplied mod icon.

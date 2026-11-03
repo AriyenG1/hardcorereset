@@ -2,7 +2,7 @@
 
 <img src="src/main/resources/assets/hardcorereset/icon.png" width="128" alt="Hardcore Reset icon">
 
-Server-side Fabric mod for **Minecraft 26.3**, **Fabric API 0.165.0+26.3**,
+Server-side Fabric mod for **Minecraft 26.3**, **Fabric API 0.165.0+26.3 or newer for Minecraft 26.3**,
 **Fabric Loader 0.20.1+**, and **Java 25**.
 
 Any player death makes everyone a spectator, starts a **10-second countdown**,
@@ -16,8 +16,8 @@ Download the JAR or the ZIP with Fabric API from the
 
 1. Back up your server before trying the mod. Old gameplay worlds are deleted
    after a successful reset.
-2. Put `hardcorereset-1.0.3.jar` in the Fabric server's `mods/` directory alongside
-   **Fabric API 0.165.0+26.3**. Fantasy, the runtime-world library, is already
+2. Put `hardcorereset-1.0.4.jar` in the Fabric server's `mods/` directory alongside
+   **Fabric API 0.165.0+26.3 or newer for Minecraft 26.3**. Fantasy, the runtime-world library, is already
    bundled inside the mod JAR; you do not need a separate Fantasy download.
 3. Use **Java 25** and keep the vanilla Nether and End enabled. Set
    `pause-when-empty-seconds=0` in `server.properties` so a countdown can finish
@@ -29,8 +29,21 @@ Download the JAR or the ZIP with Fabric API from the
    it automatically. No Python script or special environment variables are needed.
 
 Only the server needs the mod. The optional release ZIP contains the mod JAR,
-the exact Fabric API JAR, and an installation note; copy its two JARs to `mods/`.
+Fabric API 0.165.2+26.3, and an installation note; copy its two JARs to `mods/`.
 Do not also keep duplicate copies of Fabric API or this mod in that folder.
+
+## Fabric compatibility
+
+Minecraft must remain **26.3**. Fabric Loader **0.20.1 or newer** and Fabric API
+**0.165.0+26.3 or newer built for Minecraft 26.3** satisfy the mod's requirements.
+You can update these Fabric components without replacing Hardcore Reset just
+because their version numbers changed. Do not install Fabric API for a different
+Minecraft version or keep multiple Fabric API JARs in `mods/`.
+
+The build uses a pinned Fabric API version for reproducible downloads. Its
+separate runtime minimum allows newer releases. Version 1.0.4 is checked against
+both 0.165.0+26.3 and 0.165.2+26.3; a future breaking API change may still need a
+mod update.
 
 ## What happens during a reset
 
@@ -110,8 +123,9 @@ Select JDK 25 using `JAVA_HOME`, then:
 ```
 
 Windows: `gradlew.bat build`. The installable artifact is
-`build/libs/hardcorereset-1.0.3.jar`, not the sources JAR.
+`build/libs/hardcorereset-1.0.4.jar`, not the sources JAR.
 
+CI builds against both the minimum and current Fabric API versions.
 The build compiles the Minecraft integration, runs 14 standalone controller/state
 tests, and compiles the optional protocol smoke client. The standalone tests can
 also run directly with `./tools/test-controller.sh`.
@@ -136,8 +150,8 @@ server whose EULA you have accepted. It does not reconnect automatically:
 ./gradlew protocolSmokeClient -PsmokeName=ResetTester -PsmokePort=25575 -PsmokeSeconds=120
 ```
 
-GitHub Actions builds the mod and uploads the artifact after a push; it was not
-run or published from this workspace.
+GitHub Actions checks both supported Fabric API versions and uploads build
+artifacts after a push. Version tags publish the tested files from `releases/`.
 
 ## Bundled library
 

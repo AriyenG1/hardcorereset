@@ -1,5 +1,22 @@
 # Release validation
 
+## 1.0.4 Fabric compatibility
+
+- Fabric metadata endpoints reported Loader 0.20.1 as the latest stable Loader
+  for Minecraft 26.3 and Fabric API 0.165.2+26.3 as the newest API for that game
+  version when checked on 2026-11-03.
+- Java 25 Gradle builds succeeded with Fabric API 0.165.0+26.3 and 0.165.2+26.3.
+  All 14 controller/state tests passed, and the protocol helper compiled.
+- Checked the packaged version requirements with Fabric Loader 0.20.1's own
+  `VersionPredicate`: both released API versions are accepted, 0.164.0+26.3 is
+  rejected, and Minecraft 26.2, 26.3.1, and 26.4 are rejected. Synthetic newer API
+  and Loader version numbers confirm the open minimum semantics only.
+- Packaged metadata has no unexpanded variables. JAR integrity passed and the
+  nested Fantasy JAR is byte-identical to the one in release 1.0.3.
+- This update changes dependency metadata and build configuration. No new live
+  server or graphical-client session was run; older live checks below describe
+  their original releases. Future breaking Fabric API changes remain possible.
+
 ## 1.0.1 regression fixes
 
 The original live checks below missed the connection-owned player reference and
