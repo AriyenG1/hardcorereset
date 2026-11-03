@@ -13,6 +13,7 @@ public final class RoundController<W> {
         void activate(W world) throws Exception;
         void retirePrevious() throws Exception;
         void announce(String message);
+        default void announce(String message, String died) { announce(message); }
         void reportFailure(Throwable error);
     }
 
@@ -23,6 +24,7 @@ public final class RoundController<W> {
     private boolean resume = true;
     private long deadline;
     private int announced;
+    private String deathName = "";
 
     public RoundController(Worlds<W> worlds, LongSupplier nanoTime) {
         this.worlds = worlds;
@@ -41,12 +43,13 @@ public final class RoundController<W> {
         if (phase != Phase.ACTIVE) return;
         phase = Phase.COUNTDOWN;
         resume = false;
+        deathName = name;
         deadline = nanoTime.getAsLong() + 10_000_000_000L;
         announced = 10;
         pending = null;
         try {
             worlds.spectateEveryone();
-            worlds.announce(name + " died! New world in 10 seconds.");
+            worlds.announce(name + " died! New world in 10 seconds.", deathName);
             prepare(); // Generate during the countdown, without blocking ticks.
         } catch (Exception error) {
             fail(error);
@@ -77,18 +80,18 @@ public final class RoundController<W> {
                 int seconds = (int) Math.ceil(remaining / 1_000_000_000.0);
                 if (seconds < announced) {
                     announced = seconds;
-                    worlds.announce("New world in " + seconds + "...");
+                    worlds.announce("New world in " + seconds + "...", deathName);
                 }
                 return;
             }
             phase = Phase.PREPARING;
-            worlds.announce("Moving to the new world. Stay connected...");
+            worlds.announce("Moving to the new world. Stay connected...", deathName);
         }
         if (pending == null || !pending.isDone()) return;
         try {
             worlds.activate(pending.join());
             phase = Phase.ACTIVE;
-            worlds.announce("A new run has begun!");
+            worlds.announce("A new run has begun!", deathName);
         } catch (Exception error) {
             fail(error);
             return;

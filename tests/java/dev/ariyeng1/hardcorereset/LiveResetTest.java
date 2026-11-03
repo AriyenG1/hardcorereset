@@ -14,6 +14,7 @@ public final class LiveResetTest {
         CompletableFuture<String> future = CompletableFuture.completedFuture("first");
         List<String> calls = new ArrayList<>();
         List<String> messages = new ArrayList<>();
+        List<String> deathNames = new ArrayList<>();
         int freezes;
         int failures;
         boolean failTransfer;
@@ -38,6 +39,7 @@ public final class LiveResetTest {
             if (failCleanup) throw new IllegalStateException("cleanup failed");
         }
         public void announce(String text) { messages.add(text); }
+        public void announce(String text, String died) { messages.add(text); deathNames.add(died); }
         public void reportFailure(Throwable error) { failures++; }
     }
     private record Fixture(Worlds worlds, AtomicLong clock, RoundController<String> controller) {}
@@ -78,6 +80,7 @@ public final class LiveResetTest {
                 f.controller.playerDied("Sam"); f.controller.tick();
             }
             check(f.worlds.messages.size() == 10, "exactly ten countdown messages");
+            check(f.worlds.deathNames.stream().filter(n -> !n.isBlank()).allMatch("Alex"::equals), "original username retained throughout countdown");
             check(f.worlds.messages.getFirst().contains("10 seconds"), "starts at ten");
             check(f.worlds.messages.getLast().contains("1..."), "ends at one");
             check(f.worlds.calls.equals(List.of("prepare:false")), "no duplicate generation");

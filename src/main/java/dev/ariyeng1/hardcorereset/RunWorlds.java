@@ -257,7 +257,27 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
 
     @Override
     public void announce(String text) {
-        server.getPlayerList().broadcastSystemMessage(Component.literal("[Hardcore Reset] " + text), false);
+        announce(text, "");
+    }
+
+    @Override
+    public void announce(String text, String died) {
+        String title = text;
+        boolean countdown = text.startsWith("New world in ") || text.contains(" died! New world in ");
+        if (text.contains(" died! New world in ")) title = "Reset in 10";
+        else if (text.startsWith("New world in ")) title = text.replace("New world in ", "Reset in ").replace("...", "");
+        else if (text.startsWith("Moving to the new world")) title = "Resetting world...";
+        else if (text.equals("A new run has begun!")) title = "New world ready!";
+        else if (text.startsWith("World reset paused")) title = "Reset paused — check server logs";
+        var heading = Component.literal(title).withStyle(net.minecraft.ChatFormatting.GOLD);
+        var subtitle = Component.literal(died.isBlank() ? "" : died + " died")
+                .withStyle(net.minecraft.ChatFormatting.RED);
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(
+                    0, countdown ? 30 : 80, countdown ? 0 : 10));
+            player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket(subtitle));
+            player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(heading));
+        }
     }
 
     @Override

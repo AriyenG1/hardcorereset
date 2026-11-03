@@ -4,15 +4,24 @@
   "version": "${version}",
   "name": "Hardcore Reset",
   "description": "One player's death starts a 10-second countdown and creates a new run without stopping the server or disconnecting players.",
-  "authors": ["AriyenG1"],
+  "authors": [
+    "AriyenG1"
+  ],
   "environment": "server",
-  "entrypoints": {"main": ["dev.ariyeng1.hardcorereset.HardcoreReset"]},
-  "mixins": ["hardcorereset.mixins.json"],
+  "entrypoints": {
+    "main": [
+      "dev.ariyeng1.hardcorereset.HardcoreReset"
+    ]
+  },
+  "mixins": [
+    "hardcorereset.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.20.1",
     "minecraft": "26.3",
     "java": ">=25",
     "fabric-api": "0.165.0+26.3",
     "fantasy": "0.8.4+26.3"
-  }
+  },
+  "icon": "assets/hardcorereset/icon.png"
 }

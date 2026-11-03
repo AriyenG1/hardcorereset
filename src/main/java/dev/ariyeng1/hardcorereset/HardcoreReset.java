@@ -45,7 +45,7 @@ public final class HardcoreReset implements ModInitializer {
         });
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if (entity instanceof ServerPlayer player && controller != null) {
-                controller.playerDied(player.getName().getString());
+                controller.playerDied(player.getGameProfile().name());
             }
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {

@@ -1,5 +1,7 @@
 # Hardcore Reset
 
+<img src="src/main/resources/assets/hardcorereset/icon.png" width="128" alt="Hardcore Reset icon">
+
 Server-side Fabric mod for **Minecraft 26.3**, **Fabric API 0.165.0+26.3**,
 **Fabric Loader 0.20.1+**, and **Java 25**.
 
