@@ -1,7 +1,6 @@
 package dev.ariyeng1.hardcorereset;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -13,8 +12,6 @@ import net.minecraft.stats.Stat;
 import net.minecraft.stats.StatType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.LevelResource;
@@ -37,13 +34,14 @@ import java.util.concurrent.CompletableFuture;
 /** Minecraft operations stay on the server thread; chunk futures never block it. */
 public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
     public record Run(RunState state, RuntimeLevelHandle overworld,
-                      RuntimeLevelHandle nether, RuntimeLevelHandle end) {
+                      RuntimeLevelHandle nether, RuntimeLevelHandle end, BlockPos spawn) {
         List<RuntimeLevelHandle> levels() { return List.of(overworld, nether, end); }
     }
 
     private final MinecraftServer server;
     private final Path stateFile;
     private final List<Run> retired = new ArrayList<>();
+    private final LoginRecovery login = new LoginRecovery();
     private final Set<ServerLevel> closing = new HashSet<>();
     private Run active;
     private BlockPos spawn;
@@ -65,21 +63,14 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
                 throw new IllegalStateException("The run's End dimension did not initialize its dragon fight");
             }
             end.asLevel().getDragonFight().init(end.asLevel(), state.seed(), BlockPos.ZERO);
-            Run candidate = new Run(state, overworld, nether, end);
-            List<CompletableFuture<?>> chunks = new ArrayList<>();
-            for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
-                    overworld.asLevel().setChunkForced(x, z, true);
-                    chunks.add(overworld.asLevel().getChunkSource().getChunkFuture(x, z, ChunkStatus.FULL, true)
-                            .thenAccept(result -> {
-                                boolean[] loaded = {false};
-                                result.ifSuccess(chunk -> loaded[0] = true);
-                                if (!loaded[0]) throw new IllegalStateException("Spawn chunk generation failed");
-                            }));
-                }
+            for (var handle : List.of(overworld, nether, end)) {
+                long actualSeed = handle.asLevel().getChunkSource().randomState().seed();
+                if (actualSeed != state.seed()) throw new IllegalStateException("World generation seed does not match run seed");
             }
-            return CompletableFuture.allOf(chunks.toArray(CompletableFuture[]::new))
-                    .thenApply(ignored -> candidate);
+            return NaturalSpawn.find(overworld.asLevel()).thenApplyAsync(position -> {
+                overworld.asLevel().setChunkForced(position.getX() >> 4, position.getZ() >> 4, true);
+                return new Run(state, overworld, nether, end, position);
+            }, server);
         } catch (Exception error) {
             // Preserve partial/resumed dimensions for diagnosis instead of deleting saved data.
             return CompletableFuture.failedFuture(error);
@@ -90,7 +81,7 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
         if (template == null) throw new IllegalStateException("Enable vanilla Nether and End dimensions first");
         var config = new RuntimeLevelConfig()
                 .setDimensionType(template.dimensionTypeRegistration())
-                .setGenerator(template.getChunkSource().getGenerator())
+                .setGenerator(copyGenerator(template))
                 .setSeed(state.seed()).setShouldTickTime(true)
                 .setDifficulty(template.getDifficulty()).setMirrorOverworldGameRules(true);
         var id = Identifier.fromNamespaceAndPath("hardcorereset", "run_" + state.id() + "/" + name);
@@ -108,7 +99,7 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
 
     @Override
     public void activate(Run next) throws Exception {
-        BlockPos destination = findSpawn(next.overworld().asLevel());
+        BlockPos destination = next.spawn();
         // Persist before marking any player as belonging to the new run.
         next.state().save(stateFile);
         if (active != null && active != next) retired.add(active);
@@ -117,36 +108,12 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
         for (ServerPlayer player : List.copyOf(server.getPlayerList().getPlayers())) enterRun(player, true);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) player.setGameMode(GameType.SURVIVAL);
         server.getPlayerList().saveAll();
-        for (int x = -1; x <= 1; x++) {
-            for (int z = -1; z <= 1; z++) {
-                if (x != (spawn.getX() >> 4) || z != (spawn.getZ() >> 4)) {
-                    next.overworld().asLevel().setChunkForced(x, z, false);
-                }
-            }
-        }
     }
 
-    private BlockPos findSpawn(ServerLevel level) {
-        for (int x = -12; x <= 20; x += 4) {
-            for (int z = -12; z <= 20; z += 4) {
-                int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-                BlockPos feet = new BlockPos(x, y, z);
-                var below = level.getBlockState(feet.below());
-                if (below.isFaceSturdy(level, feet.below(), Direction.UP) && below.getFluidState().isEmpty()
-                        && level.getBlockState(feet).isAir() && level.getBlockState(feet.above()).isAir()
-                        && !below.is(Blocks.MAGMA_BLOCK) && !below.is(Blocks.CAMPFIRE)) return feet;
-            }
-        }
-        // Only ocean/unsafe spawns receive a small starter platform.
-        int y = Math.max(64, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, 0, 0));
-        for (int x = -2; x <= 2; x++) {
-            for (int z = -2; z <= 2; z++) {
-                level.setBlockAndUpdate(new BlockPos(x, y - 1, z), Blocks.GRASS_BLOCK.defaultBlockState());
-                level.setBlockAndUpdate(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
-                level.setBlockAndUpdate(new BlockPos(x, y + 1, z), Blocks.AIR.defaultBlockState());
-            }
-        }
-        return new BlockPos(0, y, 0);
+    private net.minecraft.world.level.chunk.ChunkGenerator copyGenerator(ServerLevel template) {
+        var ops = net.minecraft.resources.RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE, server.registryAccess());
+        var codec = net.minecraft.world.level.chunk.ChunkGenerator.CODEC;
+        return codec.parse(ops, codec.encodeStart(ops, template.getChunkSource().getGenerator()).getOrThrow()).getOrThrow();
     }
 
     public void reconcilePlayers() {
@@ -155,6 +122,9 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
 
     public void reconcilePlayer(ServerPlayer player) {
         if (active == null || spawn == null) return;
+        if (player.connection.player != player || player.isRemoved() || player.isDeadOrDying()) {
+            throw new IllegalStateException("Player/connection identity or health invariant failed for " + player.getUUID());
+        }
         boolean stale = !active.state().id().toString().equals(player.getAttached(HardcoreReset.PLAYER_RUN));
         if (stale || !contains(player.level())) enterRun(player, false);
     }
@@ -225,6 +195,41 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
         if (vanilla == Level.NETHER) return active.nether().getRegistryKey();
         if (vanilla == Level.END) return active.end().getRegistryKey();
         return vanilla;
+    }
+
+    public net.minecraft.nbt.CompoundTag prepareLogin(java.util.UUID id, net.minecraft.nbt.CompoundTag tag) {
+        return login.prepare(id, tag, server);
+    }
+
+    public void finishLogin(ServerPlayer player, boolean frozen) {
+        var destination = login.take(player.getUUID());
+        if (destination == null) return;
+        if (destination.recover()) player.removeAttached(HardcoreReset.PLAYER_RUN);
+        if (!frozen && !destination.recover() && destination.position().dimension().isPresent()) {
+            var target = server.getLevel(destination.position().dimension().get());
+            if (target != null && contains(target) && active.state().id().toString().equals(player.getAttached(HardcoreReset.PLAYER_RUN))) {
+                var pos = destination.position().position().orElse(Vec3.atBottomCenterOf(spawn));
+                var rotation = destination.position().rotation().orElse(net.minecraft.world.phys.Vec2.ZERO);
+                player.teleport(new TeleportTransition(target, pos, Vec3.ZERO, rotation.x, rotation.y, TeleportTransition.DO_NOTHING));
+            }
+        }
+    }
+
+    public String status() {
+        if (active == null) return "Hardcore Reset is preparing its first run";
+        var level = overworld();
+        var generator = level.getChunkSource().getGenerator();
+        var random = level.getChunkSource().randomState();
+        long terrain = 1;
+        for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++) {
+            terrain = 31 * terrain + generator.getBaseHeight(x * 127, z * 127,
+                    Heightmap.Types.OCEAN_FLOOR_WG, level, random);
+        }
+        String players = server.getPlayerList().getPlayers().stream().map(p -> p.getPlainTextName()
+                + ":bound=" + (p.connection.player == p) + ",health=" + p.getHealth()
+                + ",removed=" + p.isRemoved() + ",loaded=" + p.connection.hasClientLoaded() + ",changing=" + p.isChangingDimension()).collect(java.util.stream.Collectors.joining(";"));
+        return "run=" + active.state().id() + " seed=" + active.state().seed() + " noiseSeed=" + random.seed()
+                + " terrain=" + terrain + " spawn=" + spawn + " players=" + players;
     }
 
     public ServerLevel overworld() { return active.overworld().asLevel(); }

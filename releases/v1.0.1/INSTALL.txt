@@ -1,0 +1,18 @@
+HARDCORE RESET 1.0.1 - Minecraft 26.3
+
+Java 25, Fabric Loader 0.20.1+, Fabric API 0.165.0+26.3 required.
+Back up the server before updating. Stop it once, remove the 1.0.0 mod JAR,
+and put hardcorereset-1.0.1.jar in mods/ alongside the exact Fabric API JAR.
+Keep existing world and player files. Do not delete player data.
+Dead/spectator saves and retired-dimension logins are repaired automatically.
+Keep Nether and End enabled and pause-when-empty-seconds=0.
+
+Death resets keep the server running and players connected. Old gameplay
+worlds are deleted after transfer. Generation and cleanup may pause ticks.
+Artificial ocean platforms are removed; new runs use natural spawn selection.
+
+Console diagnostics: hardcorereset status
+Recovery after checking logs: hardcorereset retry
+
+Fantasy 0.8.4+26.3 is bundled (LGPL-3.0).
+https://github.com/NucleoidMC/fantasy/tree/7107b189e78848b062b7b53799161f6e494ae75d

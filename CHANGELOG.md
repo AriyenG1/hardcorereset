@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.1
+
+- Use the complete vanilla respawn handler, fixing the stale connection player,
+  duplicate UUID symptoms, stale movement state, and uncleared respawn-wait flag.
+- Stage logins in the permanent infrastructure world so configuration cannot wait
+  on a retired dimension. Repair dead and stale spectator saves before joining.
+- Preserve valid current-run logout positions and reset stale-run players on entry.
+- Replace the artificial ocean platform with Minecraft's natural spawn search.
+- Isolate each run's generator and check its real generation seed against its manifest.
+- Add console `hardcorereset status` diagnostics and a saved-player regression helper.
+
+Validated with three live resets, repeated deaths of one player, corrupted-save
+recovery, logout/reconnect during a countdown, saved-health checks, four distinct
+seed/terrain fingerprints, and the existing 14 controller/state tests.
+
 ## 1.0.0
 
 First release for Minecraft 26.3 and Fabric API 0.165.0+26.3.

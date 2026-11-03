@@ -14,13 +14,16 @@ Download the JAR or the ZIP with Fabric API from the
 
 1. Back up your server before trying the mod. Old gameplay worlds are deleted
    after a successful reset.
-2. Put `hardcorereset-1.0.0.jar` in the Fabric server's `mods/` directory alongside
+2. Put `hardcorereset-1.0.1.jar` in the Fabric server's `mods/` directory alongside
    **Fabric API 0.165.0+26.3**. Fantasy, the runtime-world library, is already
    bundled inside the mod JAR; you do not need a separate Fantasy download.
 3. Use **Java 25** and keep the vanilla Nether and End enabled. Set
    `pause-when-empty-seconds=0` in `server.properties` so a countdown can finish
    even if all players leave. The new run's game mode is survival.
-4. Start the server normally. A first run is created automatically. Players join
+4. When updating from 1.0.0, stop the server once and replace the old mod JAR. Keep
+   the existing world and player files. Version 1.0.1 repairs dead/spectator saves
+   and retired-dimension logins automatically; do not delete player data to work around it.
+5. Start the server normally. A first run is created automatically. Players join
    it automatically. No Python script or special environment variables are needed.
 
 Only the server needs the mod. The optional release ZIP contains the mod JAR,
@@ -62,8 +65,9 @@ world/
 
 The manifest stores the active ID and random seed. Ordinary operator-initiated
 server restarts resume that run. A new run does not reuse `server.properties`'s
-fixed seed. If an ocean/unsafe spawn has no suitable land nearby, the mod creates
-a small starter platform. Corrupt manifest data is reported rather than silently
+fixed seed. Spawn selection uses Minecraft's climate-biased origin and natural-ground search.
+The mod does not construct an ocean platform. Each run gets an independent generator
+and its actual noise-generation seed is checked against the saved run seed. Corrupt manifest data is reported rather than silently
 replacing the run. Failed/crash-interrupted preparation may retain unused run
 folders; empty old parent directories can also remain. Inspect them only with
 the server stopped.
@@ -80,10 +84,19 @@ own player progression may need additional integration.
 
 ## Recovery
 
+Version 1.0.1 loads joining players through the permanent infrastructure world
+during login configuration, then restores a valid current-run position or starts
+them at the current spawn. This avoids referring to a world that retires while
+they are connecting. Dead or stale spectator saves are recovered into a live player.
+
+
 On a preparation or transfer failure, players remain connected as spectators.
 Inspect the server log, fix the cause, then run **`hardcorereset retry` from the
 server console**. Failed handoffs reuse the same prepared run so players are not
 split between successive attempts. The recovery command is console-only.
+
+Console-only `hardcorereset status` reports the active run, saved and generation
+seeds, a terrain sample fingerprint, and player connection/loading invariants.
 
 ## Build and validation
 
@@ -94,13 +107,18 @@ Select JDK 25 using `JAVA_HOME`, then:
 ```
 
 Windows: `gradlew.bat build`. The installable artifact is
-`build/libs/hardcorereset-1.0.0.jar`, not the sources JAR.
+`build/libs/hardcorereset-1.0.1.jar`, not the sources JAR.
 
 The build compiles the Minecraft integration, runs 14 standalone controller/state
 tests, and compiles the optional protocol smoke client. The standalone tests can
 also run directly with `./tools/test-controller.sh`.
 
-The release was smoke-tested on an actual dedicated Fabric server with two
+Version 1.0.1 additionally passed three live resets, repeated deaths of the same
+player, recovery of an actual legacy dead-player save and a reconstructed corrupt
+save, persisted-health checks, and reconnecting during a countdown. Four inspected
+runs had distinct generation seeds and terrain fingerprints.
+
+The original release was smoke-tested on an actual dedicated Fabric server with two
 headless clients using Minecraft's own **26.3 packet codecs**. Both clients kept
 one connection through two death resets, including a Nether death. Inventory,
 ender chest, XP, survival mode, new seeds, old-world deletion, End travel and

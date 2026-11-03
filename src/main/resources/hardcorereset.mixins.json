@@ -2,6 +2,14 @@
   "required": true,
   "package": "dev.ariyeng1.hardcorereset.mixin",
   "compatibilityLevel": "JAVA_25",
-  "mixins": ["NetherPortalMixin", "EndPortalMixin", "RetiredWorldMixin", "PlayerAccess"],
-  "injectors": {"defaultRequire": 1}
+  "mixins": [
+    "NetherPortalMixin",
+    "EndPortalMixin",
+    "RetiredWorldMixin",
+    "PlayerAccess",
+    "PlayerDataMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

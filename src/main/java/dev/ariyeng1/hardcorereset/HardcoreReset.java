@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
 import net.minecraft.world.level.GameType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,10 @@ public final class HardcoreReset implements ModInitializer {
             if (controller == null) return;
             for (ServerPlayer player : List.copyOf(server.getPlayerList().getPlayers())) {
                 if (controller.frozen() && player.isDeadOrDying()) {
-                    server.getPlayerList().respawn(player, false, Entity.RemovalReason.KILLED);
+                    // Use the complete vanilla path: rebind the connection, reset movement,
+                    // and clear waitingForRespawn before accepting the next client-loaded packet.
+                    player.connection.handleClientCommand(new ServerboundClientCommandPacket(
+                            ServerboundClientCommandPacket.Action.PERFORM_RESPAWN));
                 }
             }
             controller.tick();
@@ -67,7 +70,11 @@ public final class HardcoreReset implements ModInitializer {
         ServerPlayerEvents.JOIN.register(this::onJoin);
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> onJoin(newPlayer));
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) ->
-                dispatcher.register(literal("hardcorereset").then(literal("retry").executes(context -> {
+                dispatcher.register(literal("hardcorereset").then(literal("status").executes(context -> {
+                    if (context.getSource().getEntity() != null || worlds == null) return 0;
+                    context.getSource().sendSystemMessage(Component.literal(worlds.status()));
+                    return 1;
+                })).then(literal("retry").executes(context -> {
                     if (context.getSource().getEntity() != null) {
                         context.getSource().sendFailure(Component.literal("Run this recovery command from the server console."));
                         return 0;
@@ -77,13 +84,14 @@ public final class HardcoreReset implements ModInitializer {
     }
 
     private void onJoin(ServerPlayer player) {
-        if (controller == null || controller.frozen()) player.setGameMode(GameType.SPECTATOR);
-        else {
-            try {
-                worlds.reconcilePlayer(player);
-            } catch (Exception error) {
-                controller.pause(error);
-            }
+        try {
+            boolean frozen = controller == null || controller.frozen();
+            if (worlds != null) worlds.finishLogin(player, frozen);
+            if (frozen) player.setGameMode(GameType.SPECTATOR);
+            else worlds.reconcilePlayer(player);
+        } catch (Exception error) {
+            if (controller != null) controller.pause(error);
+            else LOG.error("Player login recovery failed", error);
         }
     }
 
@@ -91,6 +99,10 @@ public final class HardcoreReset implements ModInitializer {
     public static RunWorlds worldsFor(ServerLevel source) {
         return instance != null && instance.worlds != null && instance.worlds.contains(source)
                 ? instance.worlds : null;
+    }
+
+    public static net.minecraft.nbt.CompoundTag prepareLogin(java.util.UUID id, net.minecraft.nbt.CompoundTag tag) {
+        return instance == null || instance.worlds == null ? tag : instance.worlds.prepareLogin(id, tag);
     }
 
     public static boolean closeBeforeDeletion(ServerLevel level) {

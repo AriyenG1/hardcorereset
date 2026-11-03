@@ -1,43 +1,49 @@
-name: Publish first release
+name: Publish release
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag
+        required: true
+        default: v1.0.1
   push:
-    branches: [main]
-    paths:
-      - 'releases/v1.0.0/**'
+    tags: ['v*']
 
 permissions:
   contents: write
 
 concurrency:
-  group: publish-v1.0.0
+  group: publish-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
           persist-credentials: false
       - name: Verify tested release artifacts and tagged source
         run: |
-          git rev-parse --verify 'v1.0.0^{commit}'
-          git diff --exit-code v1.0.0 -- src gradle gradlew gradlew.bat gradle.properties build.gradle settings.gradle
-          cd releases/v1.0.0
+          git rev-parse --verify "${RELEASE_TAG}^{commit}"
+          git diff --exit-code "$RELEASE_TAG" -- src gradle gradlew gradlew.bat gradle.properties build.gradle settings.gradle
+          cd "releases/$RELEASE_TAG"
           sha256sum --check SHA256SUMS
-      - name: Publish v1.0.0 with the tested downloads
+      - name: Publish the tested downloads
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create v1.0.0 \
-            releases/v1.0.0/hardcorereset-1.0.0.jar \
-            releases/v1.0.0/hardcorereset-1.0.0-server-bundle.zip \
-            releases/v1.0.0/SHA256SUMS \
-            releases/v1.0.0/INSTALL.txt \
-            --title "Hardcore Reset 1.0.0 - Minecraft 26.3" \
-            --notes-file RELEASE_NOTES.md \
+          gh release create "$RELEASE_TAG" \
+            "releases/$RELEASE_TAG/hardcorereset-${RELEASE_TAG#v}.jar" \
+            "releases/$RELEASE_TAG/hardcorereset-${RELEASE_TAG#v}-server-bundle.zip" \
+            "releases/$RELEASE_TAG/SHA256SUMS" \
+            "releases/$RELEASE_TAG/INSTALL.txt" \
+            --title "Hardcore Reset ${RELEASE_TAG#v} - Minecraft 26.3" \
+            --notes-file "releases/$RELEASE_TAG/RELEASE_NOTES.md" \
             --verify-tag --latest

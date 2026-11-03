@@ -118,6 +118,15 @@ public final class ProtocolSmokeClient implements InvocationHandler {
     }
     public static void main(String[] args) throws Exception {
         SharedConstants.tryDetectVersion(); Bootstrap.bootStrap();
+        if (args.length > 3) {
+            var gate = java.nio.file.Path.of(args[3]);
+            java.nio.file.Files.writeString(java.nio.file.Path.of(args[3] + ".ready"), "ready");
+            long limit = System.nanoTime() + 60_000_000_000L;
+            while (!java.nio.file.Files.exists(gate)) {
+                if (System.nanoTime() > limit) throw new IllegalStateException("Test start gate timed out");
+                Thread.sleep(50);
+            }
+        }
         new ProtocolSmokeClient(args[0]).run(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
     }
 }

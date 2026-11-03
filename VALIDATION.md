@@ -1,5 +1,51 @@
 # Release validation
 
+## 1.0.1 regression fixes
+
+The original live checks below missed the connection-owned player reference and
+the respawn-wait flag. A later inspection of the old test server actually found
+ResetAlice saved with health 0, spectator mode, and a retired dimension. That
+legacy save reproduced the reported failure and was used for recovery testing.
+
+Version 1.0.1 uses the full vanilla client-command respawn path and loads login
+configuration through the permanent hub. The final build was exercised with:
+
+- Recovery of the legacy dead save and a reconstructed health-0/spectator save
+  referring to a nonexistent run; both joined alive in survival.
+- Two consecutive deaths of ResetAlice, then a death of ResetBob: three completed
+  resets. Status checks showed `bound=true`, `health=20`, `removed=false`,
+  `loaded=true`, and `changing=false` after transfers.
+- A deliberate logout followed by a gated reconnect during the third countdown.
+  The player joined as spectator before the timer expired, then transferred with
+  the remaining client into the new run.
+- Both saved NBT files inspected after saving/logout: health 20, survival mode,
+  current run dimension. No duplicate-UUID warnings in the final server log.
+- Four distinct runs with each manifest seed equal to its RandomState seed, and
+  different 25-point OCEAN_FLOOR_WG terrain fingerprints:
+
+| Seed | Terrain fingerprint |
+| --- | --- |
+| 2108076949663673380 | 2969818447972890688 |
+| 5441955137901048646 | -4323943276203657613 |
+| -6128879437619173060 | 4504039883093815073 |
+| -1938303269046862097 | 2317486583262144755 |
+
+Natural spawns were `(224,79,-128)`, `(48,69,32)`, `(0,137,0)`, and `(16,63,2)`.
+The new spawn path only searches terrain and never places platform blocks.
+Distinct finite samples support the observed terrain changes; they are not a
+proof that every location differs between every possible pair of seeds.
+
+An early observer bot was kicked for floating at a legacy saved location because
+it does not simulate client gravity. Reconnecting it after that run retired
+recovered it at the new natural spawn. The final two-client regression run had
+no such kick during its reset checks. Graphical rendering remains untested.
+
+The final Java 25 build and all 14 existing controller tests passed. Protocol
+helper code is compiled by the build. The old first-release observations below
+are retained as history and do not establish saved-player correctness in 1.0.0.
+
+## Original 1.0.0 validation
+
 Target: Minecraft 26.3, Fabric Loader 0.20.1, Fabric API 0.165.0+26.3,
 Fantasy 0.8.4+26.3, Java 25. The server was disposable, bound to 127.0.0.1,
 and used offline mode solely to permit the local test clients. EULA acceptance

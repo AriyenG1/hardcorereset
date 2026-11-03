@@ -1,26 +1,22 @@
-First release of **Hardcore Reset** for **Minecraft 26.3**.
+Bug-fix release for Minecraft 26.3 / Fabric API 0.165.0+26.3.
 
-When any player dies, everyone becomes a spectator, a ten-second countdown starts, and everyone moves into a fresh randomly seeded run. The server stays running and players keep their connections. No external launcher or client mod is required.
+### Fixed
 
-### Downloads and installation
+- Automatic respawn now uses vanilla's full handler: the connection follows the replacement player, movement tracking resets, and the respawn/loading flags are cleared. This fixes the stale dead-player save and repeated-respawn symptoms found in 1.0.0.
+- Login configuration is staged in the permanent infrastructure world. A run can retire during login without leaving the connection waiting on that dimension.
+- Existing dead/spectator saves and unknown run dimensions are recovered before joining. Valid current-run logout positions are preserved.
+- Artificial ocean platforms are removed. Fresh runs use Minecraft's climate-biased origin and natural-ground spawn search.
+- Each run gets an independent generator, and the actual world-generation seed is checked against the run's saved seed.
+- New console diagnostic: `hardcorereset status`.
 
-- **`hardcorereset-1.0.0.jar`** — put this in the Fabric server's `mods/` folder alongside Fabric API **0.165.0+26.3**.
-- **`hardcorereset-1.0.0-server-bundle.zip`** — includes the mod, the exact Fabric API JAR, and instructions. Extract the two JARs into `mods/`; remove duplicate or older copies.
-- **`SHA256SUMS`** — SHA-256 checksums for both downloads.
-- **`INSTALL.txt`** — short installation instructions.
+### Update
 
-Requires **Java 25**, **Minecraft 26.3**, and **Fabric Loader 0.20.1 or newer**. Keep Nether and End enabled and set `pause-when-empty-seconds=0` in `server.properties`. Fantasy **0.8.4+26.3** is bundled inside the mod.
+Back up your server. Stop it once, replace **hardcorereset-1.0.0.jar** with **hardcorereset-1.0.1.jar**, and start normally. Keep existing world/player files; do **not** delete player data as a workaround. The mod automatically repairs the broken login state. Recovery from an old/dead run starts that player fresh in the active run.
 
-### Included
+Requires **Java 25**, **Fabric Loader 0.20.1+**, **Minecraft 26.3**, and **Fabric API 0.165.0+26.3**. Fantasy is bundled. The server bundle ZIP includes the exact Fabric API JAR and instructions. Keep Nether and End enabled and `pause-when-empty-seconds=0`.
 
-- Fresh Overworld, Nether, and End dimensions with portals routed to the current run.
-- Automatic spectator respawn for the dying player and spectator enforcement during resets.
-- New-run resets for inventory, ender chest, XP, effects, health/food, recipe unlocks, advancements, statistics, and old respawn points.
-- Active run and seed persistence across ordinary operator-initiated server restarts.
-- Console recovery command: `hardcorereset retry`.
+Completed death resets keep the server and player connections running. Old gameplay dimensions are deleted after transfer. World generation/cleanup can still cause tick pauses, especially with large worlds.
 
-### Validation and limits
+### Verified
 
-The Java 25 build and all **14 controller/state tests passed**. Two connected Minecraft 26.3 protocol clients completed **two consecutive death resets without reconnecting**, including a Nether death. Inventory/ender-chest/XP resets, old-world deletion, End travel and return, dragon spawning, Nether routing, and ordinary restart persistence were checked. These were headless protocol clients, not graphical-client tests; see [VALIDATION.md](https://github.com/AriyenG1/hardcorereset/blob/v1.0.0/VALIDATION.md) for the full scope.
-
-**Back up before trying the mod. Completed resets delete old gameplay worlds.** The server's root save remains as infrastructure while each run uses separate gameplay dimension folders. World generation and cleanup can pause ticks, especially for larger worlds. Server-global scoreboards and other mods' separately stored data are retained.
+Java build and 14 controller tests passed. Live regressions covered three resets, repeated deaths of one player, actual/reconstructed corrupted saves, alive/current-dimension saved NBT, and a reconnect during a countdown. Four inspected runs had distinct matching manifest/generation seeds and different terrain fingerprints. No duplicate-UUID warnings occurred in the final regression run. Testing used headless Minecraft 26.3 protocol clients; graphical rendering and arbitrary mod packs were not tested.
