@@ -16,7 +16,7 @@ Download the JAR or the ZIP with Fabric API from the
 
 1. Back up your server before trying the mod. Old gameplay worlds are deleted
    after a successful reset.
-2. Put `hardcorereset-1.0.2.jar` in the Fabric server's `mods/` directory alongside
+2. Put `hardcorereset-1.0.3.jar` in the Fabric server's `mods/` directory alongside
    **Fabric API 0.165.0+26.3**. Fantasy, the runtime-world library, is already
    bundled inside the mod JAR; you do not need a separate Fantasy download.
 3. Use **Java 25** and keep the vanilla Nether and End enabled. Set
@@ -110,7 +110,7 @@ Select JDK 25 using `JAVA_HOME`, then:
 ```
 
 Windows: `gradlew.bat build`. The installable artifact is
-`build/libs/hardcorereset-1.0.2.jar`, not the sources JAR.
+`build/libs/hardcorereset-1.0.3.jar`, not the sources JAR.
 
 The build compiles the Minecraft integration, runs 14 standalone controller/state
 tests, and compiles the optional protocol smoke client. The standalone tests can

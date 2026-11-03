@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Add the supplied mod icon.
+- Show the dying player's username, countdown, and reset as on-screen titles.
+
 ## 1.0.2
 
 - Keep the dying player's spectator respawn in the same dimension at their death

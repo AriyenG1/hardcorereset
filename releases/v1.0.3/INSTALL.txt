@@ -1,0 +1,1 @@
+Minecraft 26.3; Java 25; Fabric Loader 0.20.1+; Fabric API 0.165.0+26.3. Stop the server, replace the old mod JAR, and restart. Keep world and player files.
