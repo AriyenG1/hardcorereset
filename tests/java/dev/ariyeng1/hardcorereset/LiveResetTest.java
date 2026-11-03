@@ -15,14 +15,16 @@ public final class LiveResetTest {
         List<String> calls = new ArrayList<>();
         List<String> messages = new ArrayList<>();
         List<String> deathNames = new ArrayList<>();
+        List<Long> seeds = new ArrayList<>();
         int freezes;
         int failures;
         boolean failTransfer;
         boolean failCleanup;
         boolean throwPrepare;
         boolean failFreeze;
-        public CompletableFuture<String> prepare(boolean resume) {
+        public CompletableFuture<String> prepare(boolean resume, Long seed) {
             calls.add("prepare:" + resume);
+            seeds.add(seed);
             if (throwPrepare) throw new IllegalStateException("prepare failed");
             return future;
         }
@@ -52,6 +54,7 @@ public final class LiveResetTest {
         check(controller.phase() == RoundController.Phase.ACTIVE, "initial world active");
         worlds.calls.clear();
         worlds.messages.clear();
+        worlds.seeds.clear();
         return new Fixture(worlds, time, controller);
     }
     private static void check(boolean condition, String label) {
@@ -155,6 +158,71 @@ public final class LiveResetTest {
             f.worlds.calls.clear(); f.controller.playerDied("Sam");
             f.clock.set(20_000_000_000L); f.controller.tick();
             check(f.worlds.calls.equals(List.of("prepare:false", "transfer:first", "retire")), "second reset works");
+        });
+        test("queued seed applies to exactly one reset, then random selection resumes", () -> {
+            var f = active();
+            check(f.controller.queueNextSeed(123L), "seed accepted during active run");
+            check(f.worlds.seeds.isEmpty(), "current map is not regenerated");
+            f.controller.playerDied("Alex");
+            check(f.worlds.seeds.equals(List.of(123L)), "next generation gets selected seed");
+            f.clock.set(10_000_000_000L); f.controller.tick();
+            f.controller.playerDied("Sam");
+            check(f.worlds.seeds.size() == 2 && f.worlds.seeds.get(1) == null, "following reset requests a random seed");
+        });
+        test("last queued seed wins and seed zero is not treated as random", () -> {
+            var f = active();
+            f.controller.queueNextSeed(123L); f.controller.queueNextSeed(0L);
+            f.controller.playerDied("Alex");
+            check(f.worlds.seeds.equals(List.of(0L)), "replacement seed zero retained");
+        });
+        test("seed changes during preparation, countdown, or failure are rejected", () -> {
+            var f = active();
+            f.worlds.future = new CompletableFuture<>();
+            f.controller.queueNextSeed(-123L); f.controller.playerDied("Alex");
+            check(!f.controller.queueNextSeed(42L), "countdown rejects seed change");
+            f.clock.set(10_000_000_000L); f.controller.tick();
+            check(!f.controller.queueNextSeed(42L), "preparation rejects seed change");
+            f.worlds.future.completeExceptionally(new IllegalStateException("generation failed")); f.controller.tick();
+            check(!f.controller.queueNextSeed(42L), "failure rejects seed change");
+            check(f.worlds.seeds.equals(List.of(-123L)), "prepared seed unchanged");
+        });
+        test("generation retry retains the one-shot seed without applying it to a later map", () -> {
+            var f = active();
+            f.controller.queueNextSeed(Long.MIN_VALUE);
+            f.worlds.future = CompletableFuture.failedFuture(new IllegalStateException("chunks"));
+            f.controller.playerDied("Alex"); f.clock.set(10_000_000_000L); f.controller.tick();
+            f.worlds.future = CompletableFuture.completedFuture("retry");
+            f.controller.retry(); f.controller.tick();
+            check(f.worlds.seeds.equals(List.of(Long.MIN_VALUE, Long.MIN_VALUE)), "retry uses selected seed");
+            f.controller.playerDied("Sam");
+            check(f.worlds.seeds.get(2) == null, "override consumed only by its map");
+        });
+        test("transfer retry reuses the selected map without generating another seed", () -> {
+            var f = active(); f.controller.queueNextSeed(Long.MAX_VALUE);
+            f.worlds.failTransfer = true; f.controller.playerDied("Alex");
+            f.clock.set(10_000_000_000L); f.controller.tick();
+            f.worlds.failTransfer = false; f.controller.retry(); f.controller.tick();
+            check(f.worlds.seeds.equals(List.of(Long.MAX_VALUE)), "same prepared map reused");
+            f.controller.playerDied("Sam");
+            check(f.worlds.seeds.get(1) == null, "next map uses random selection");
+        });
+        test("successful generation has no ready announcement", () -> {
+            Worlds worlds = new Worlds();
+            var clock = new AtomicLong();
+            var controller = new RoundController<String>(worlds, clock::get);
+            controller.start(); controller.tick();
+            check(worlds.messages.isEmpty(), "initial activation is silent");
+            controller.playerDied("Alex"); clock.set(10_000_000_000L); controller.tick();
+            check(worlds.messages.equals(List.of("Alex died! New world in 10 seconds.",
+                    "Moving to the new world. Stay connected...")), "only reset-in-progress announcements remain");
+        });
+        test("custom seeds preserve their exact signed values and get unique map IDs", () -> {
+            for (long seed : new long[]{0L, -123L, Long.MIN_VALUE, Long.MAX_VALUE}) {
+                var first = RunState.fresh(seed);
+                var second = RunState.fresh(seed);
+                check(first.seed() == seed && second.seed() == seed, "exact seed retained");
+                check(!first.id().equals(second.id()), "same seed still creates a new map folder");
+            }
         });
         Path temporary = Files.createTempDirectory("hardcorereset-state-test-");
         try {

@@ -69,3 +69,12 @@ tasks.register('protocolSmokeClient', JavaExec) {
             providers.gradleProperty('smokeSeconds').getOrElse('120')
 }
 tasks.named('check') { dependsOn 'compileProtocolSmokeJava' }
+
+tasks.register('nextSeedCommandTest', JavaExec) {
+    group = 'verification'
+    dependsOn 'protocolSmokeClasses'
+    classpath = sourceSets.protocolSmoke.runtimeClasspath
+    mainClass = 'NextSeedCommandTest'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+}
+tasks.named('check') { dependsOn 'nextSeedCommandTest' }

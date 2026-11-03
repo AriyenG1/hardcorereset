@@ -8,7 +8,7 @@ public final class RoundController<W> {
     public enum Phase { PREPARING, ACTIVE, COUNTDOWN, FAILED }
 
     public interface Worlds<W> {
-        CompletableFuture<W> prepare(boolean resume);
+        CompletableFuture<W> prepare(boolean resume, Long seed);
         void spectateEveryone();
         void activate(W world) throws Exception;
         void retirePrevious() throws Exception;
@@ -25,6 +25,8 @@ public final class RoundController<W> {
     private long deadline;
     private int announced;
     private String deathName = "";
+    private Long nextSeed;
+    private Long generationSeed;
 
     public RoundController(Worlds<W> worlds, LongSupplier nanoTime) {
         this.worlds = worlds;
@@ -33,6 +35,13 @@ public final class RoundController<W> {
 
     public Phase phase() { return phase; }
     public boolean frozen() { return phase != Phase.ACTIVE; }
+
+    /** The last queued seed wins; preparation already in progress cannot be changed. */
+    public boolean queueNextSeed(long seed) {
+        if (phase != Phase.ACTIVE) return false;
+        nextSeed = seed;
+        return true;
+    }
 
     public void start() {
         if (pending != null) throw new IllegalStateException("Already started");
@@ -43,6 +52,8 @@ public final class RoundController<W> {
         if (phase != Phase.ACTIVE) return;
         phase = Phase.COUNTDOWN;
         resume = false;
+        generationSeed = nextSeed;
+        nextSeed = null;
         deathName = name;
         deadline = nanoTime.getAsLong() + 10_000_000_000L;
         announced = 10;
@@ -59,7 +70,7 @@ public final class RoundController<W> {
     private void prepare() {
         pending = null;
         try {
-            pending = worlds.prepare(resume);
+            pending = worlds.prepare(resume, generationSeed);
         } catch (Exception error) {
             fail(error);
         }
@@ -91,7 +102,7 @@ public final class RoundController<W> {
         try {
             worlds.activate(pending.join());
             phase = Phase.ACTIVE;
-            worlds.announce("A new run has begun!", deathName);
+            generationSeed = null;
         } catch (Exception error) {
             fail(error);
             return;

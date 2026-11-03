@@ -16,7 +16,7 @@ Download the JAR or the ZIP with Fabric API from the
 
 1. Back up your server before trying the mod. Old gameplay worlds are deleted
    after a successful reset.
-2. Put `hardcorereset-1.0.4.jar` in the Fabric server's `mods/` directory alongside
+2. Put `hardcorereset-1.0.5.jar` in the Fabric server's `mods/` directory alongside
    **Fabric API 0.165.0+26.3 or newer for Minecraft 26.3**. Fantasy, the runtime-world library, is already
    bundled inside the mod JAR; you do not need a separate Fantasy download.
 3. Use **Java 25** and keep the vanilla Nether and End enabled. Set
@@ -41,9 +41,32 @@ because their version numbers changed. Do not install Fabric API for a different
 Minecraft version or keep multiple Fabric API JARs in `mods/`.
 
 The build uses a pinned Fabric API version for reproducible downloads. Its
-separate runtime minimum allows newer releases. Version 1.0.4 is checked against
+separate runtime minimum allows newer releases. Version 1.0.5 is checked against
 both 0.165.0+26.3 and 0.165.2+26.3; a future breaking API change may still need a
 mod update.
+
+## Choose the next map's seed
+
+During an active run, an operator can use:
+
+```text
+/nextseed 123456789
+/nextseed -987654321
+/nextseed a forest seed
+```
+
+The next reset uses that seed for its Overworld, Nether, and End. The current map
+stays unchanged. The following reset uses a random seed again unless an operator
+runs `/nextseed` again. Running it more than once before a reset replaces the
+queued seed; the last value wins. Zero and negative seeds are supported. Text
+seeds use Minecraft's normal world-creation hashing.
+
+Operators at permission level 1 or higher can use the command; ordinary players
+cannot. The server console can also use `nextseed <seed>` without the slash.
+Set it **before the reset countdown starts**, because generation begins during
+that countdown. Changes while a reset is in progress are rejected. Generation
+and transfer retries keep the seed selected for that map. The queued seed is kept
+in memory; restarting the server before the reset clears it.
 
 ## What happens during a reset
 
@@ -57,7 +80,8 @@ mod update.
   if generation needs longer than ten seconds. Generation and world cleanup can
   pause server ticks, so countdown messages may skip numbers under load.
 - Players move using normal dimension-transfer packets over their existing
-  connections, then return to survival.
+  connections, then return to survival. Reset titles clear when the new map is
+  active; no "New world ready!" message appears.
 - Old dimensions are closed and deleted only after every player has left.
   Preparation/transfer errors retain the worlds and pause the reset for inspection.
 
@@ -123,11 +147,11 @@ Select JDK 25 using `JAVA_HOME`, then:
 ```
 
 Windows: `gradlew.bat build`. The installable artifact is
-`build/libs/hardcorereset-1.0.4.jar`, not the sources JAR.
+`build/libs/hardcorereset-1.0.5.jar`, not the sources JAR.
 
 CI builds against both the minimum and current Fabric API versions.
-The build compiles the Minecraft integration, runs 14 standalone controller/state
-tests, and compiles the optional protocol smoke client. The standalone tests can
+The build compiles the Minecraft integration, runs 21 standalone controller/state
+tests and four Minecraft command checks, and compiles the optional protocol smoke client. The standalone tests can
 also run directly with `./tools/test-controller.sh`.
 
 Version 1.0.1 additionally passed three live resets, repeated deaths of the same

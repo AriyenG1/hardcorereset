@@ -1,5 +1,24 @@
 # Release validation
 
+## 1.0.5 One-shot next-map seeds
+
+- Java 25 Gradle builds passed with Fabric API 0.165.0+26.3 and 0.165.2+26.3.
+- All 21 controller/state tests passed. Added checks cover current-map preservation,
+  one-shot consumption followed by random selection, replacement and seed zero,
+  rejecting changes during a reset, generation retries retaining the seed,
+  transfer retries reusing the prepared map, exact signed seeds with unique map
+  IDs, and silent completion on initial activation and subsequent resets.
+- Four command integration checks use Minecraft 26.3's actual Brigadier dispatcher,
+  permission sets, and `WorldOptions.parseSeed`. Non-operators are denied; all four
+  operator levels are accepted. Numeric zero, negative and signed-long limits,
+  text seed hashing, missing/blank arguments, and busy-reset rejection passed.
+- The queued seed is intentionally held only in memory. It clears when the next
+  reset begins or when the server restarts; the seed selected for an in-progress
+  reset is retained across retries within that server session.
+- Production code removes the completion announcement and sends vanilla's clear-title
+  packet after successful activation. No new live server or graphical-client session
+  was run; title rendering and actual world terrain remain outside these new checks.
+
 ## 1.0.4 Fabric compatibility
 
 - Fabric metadata endpoints reported Loader 0.20.1 as the latest stable Loader

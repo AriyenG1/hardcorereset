@@ -1,0 +1,18 @@
+Hardcore Reset 1.0.5 for Minecraft 26.3
+Requires Java 25+, Fabric Loader 0.20.1+, and Fabric API 0.165.0+26.3 or newer for Minecraft 26.3.
+
+Stop the server. Replace the old Hardcore Reset JAR with hardcorereset-1.0.5.jar in mods/.
+Keep world and player files. Fantasy is bundled inside the mod.
+Use just one Fabric API JAR; this bundle supplies fabric-api-0.165.2+26.3.jar.
+Restart the server normally. No client mod is required.
+
+Operators can use /nextseed <seed> during an active run, before the reset countdown.
+Numeric and text seeds are supported. The next map uses the chosen seed once;
+following maps return to random seeds unless the command is run again.
+The last queued value wins. Queued seeds clear on server restart.
+Operator permission level 1+ is required. The console may use nextseed <seed>.
+The "New world ready!" title is removed; reset titles clear after transfer.
+
+Minecraft is restricted to exactly 26.3. Back up saves before use: successful resets delete old gameplay worlds.
+Validation: builds with both supported API versions, 21 controller/state tests, four command integration checks.
+No new live-server or graphical-client session was run for this update.

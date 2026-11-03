@@ -70,6 +70,8 @@ public final class HardcoreReset implements ModInitializer {
         ServerPlayerEvents.JOIN.register(this::onJoin);
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> onJoin(newPlayer));
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) ->
+                NextSeedCommand.register(dispatcher, seed -> controller != null && controller.queueNextSeed(seed)));
+        CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) ->
                 dispatcher.register(literal("hardcorereset").then(literal("status").executes(context -> {
                     if (context.getSource().getEntity() != null || worlds == null) return 0;
                     context.getSource().sendSystemMessage(Component.literal(worlds.status()));

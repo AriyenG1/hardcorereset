@@ -14,7 +14,11 @@ import java.util.UUID;
 /** The active run is saved before players receive its persistent per-player run marker. */
 public record RunState(UUID id, long seed) {
     public static RunState fresh() {
-        return new RunState(UUID.randomUUID(), new SecureRandom().nextLong());
+        return fresh(new SecureRandom().nextLong());
+    }
+
+    public static RunState fresh(long seed) {
+        return new RunState(UUID.randomUUID(), seed);
     }
 
     public static RunState readOrCreate(Path path) throws IOException {

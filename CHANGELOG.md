@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.5
+
+- Add operator-only `/nextseed <seed>` for the next map, then return to random seeds.
+  Numeric and text seeds use Minecraft's normal parsing, including zero and negative values.
+- Allow replacing a queued seed during an active run; reject changes after the reset
+  countdown starts. Failed generation/transfer retries retain the selected map's seed.
+- Remove the "New world ready!" completion title and clear reset titles after transfer.
+- Check one-shot seed behavior and command permissions with 21 controller/state tests
+  and four command integration checks using Minecraft's actual APIs.
+
 ## 1.0.4
 
 - Allow Fabric API 0.165.0+26.3 and newer instead of requiring exactly 0.165.0+26.3.

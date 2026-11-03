@@ -52,10 +52,11 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
     }
 
     @Override
-    public CompletableFuture<Run> prepare(boolean resume) {
+    public CompletableFuture<Run> prepare(boolean resume, Long seed) {
         try {
             // Invalid state is an error; never silently replace a saved run.
-            RunState state = resume ? RunState.readOrCreate(stateFile) : RunState.fresh();
+            RunState state = resume ? RunState.readOrCreate(stateFile)
+                    : seed == null ? RunState.fresh() : RunState.fresh(seed);
             var overworld = open(state, "overworld", server.overworld());
             var nether = open(state, "nether", server.getLevel(Level.NETHER));
             var end = open(state, "end", server.getLevel(Level.END));
@@ -108,6 +109,9 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
         for (ServerPlayer player : List.copyOf(server.getPlayerList().getPlayers())) enterRun(player, true);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) player.setGameMode(GameType.SURVIVAL);
         server.getPlayerList().saveAll();
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            player.connection.send(new net.minecraft.network.protocol.game.ClientboundClearTitlesPacket(true));
+        }
     }
 
     private net.minecraft.world.level.chunk.ChunkGenerator copyGenerator(ServerLevel template) {
@@ -267,7 +271,6 @@ public final class RunWorlds implements RoundController.Worlds<RunWorlds.Run> {
         if (text.contains(" died! New world in ")) title = "Reset in 10";
         else if (text.startsWith("New world in ")) title = text.replace("New world in ", "Reset in ").replace("...", "");
         else if (text.startsWith("Moving to the new world")) title = "Resetting world...";
-        else if (text.equals("A new run has begun!")) title = "New world ready!";
         else if (text.startsWith("World reset paused")) title = "Reset paused — check server logs";
         var heading = Component.literal(title).withStyle(net.minecraft.ChatFormatting.GOLD);
         var subtitle = Component.literal(died.isBlank() ? "" : died + " died")
