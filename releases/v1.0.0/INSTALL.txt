@@ -1,0 +1,21 @@
+HARDCORE RESET 1.0.0 - Minecraft 26.3
+
+Requirements: Java 25, Fabric Loader 0.20.1+, Fabric API 0.165.0+26.3.
+
+Back up your server before trying the mod.
+Copy hardcorereset-1.0.0.jar and the included Fabric API JAR into mods/.
+Remove duplicate/older copies of these two mods.
+Keep Nether and End enabled. Set pause-when-empty-seconds=0 in server.properties.
+Start the Fabric server normally. No client mod or Python launcher is required.
+
+One player death -> everyone spectates -> ten-second countdown -> new random run.
+The server stays running; players keep their connections.
+Old gameplay dimensions are deleted after everyone leaves them.
+World generation and cleanup can cause tick pauses, especially on large worlds.
+
+If a reset pauses after an error, inspect the log and run hardcorereset retry
+from the server console once the cause is fixed.
+
+Fantasy 0.8.4+26.3 is already bundled in the mod, under LGPL-3.0.
+Source: https://github.com/NucleoidMC/fantasy/tree/7107b189e78848b062b7b53799161f6e494ae75d
+See README.md and VALIDATION.md for implementation and test details.

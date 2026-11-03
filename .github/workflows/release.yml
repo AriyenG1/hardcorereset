@@ -1,0 +1,43 @@
+name: Publish first release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'releases/v1.0.0/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-v1.0.0
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify tested release artifacts and tagged source
+        run: |
+          git rev-parse --verify 'v1.0.0^{commit}'
+          git diff --exit-code v1.0.0 -- src gradle gradlew gradlew.bat gradle.properties build.gradle settings.gradle
+          cd releases/v1.0.0
+          sha256sum --check SHA256SUMS
+      - name: Publish v1.0.0 with the tested downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create v1.0.0 \
+            releases/v1.0.0/hardcorereset-1.0.0.jar \
+            releases/v1.0.0/hardcorereset-1.0.0-server-bundle.zip \
+            releases/v1.0.0/SHA256SUMS \
+            releases/v1.0.0/INSTALL.txt \
+            --title "Hardcore Reset 1.0.0 - Minecraft 26.3" \
+            --notes-file RELEASE_NOTES.md \
+            --verify-tag --latest
