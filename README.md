@@ -16,7 +16,7 @@ Download the JAR or the ZIP with Fabric API from the
 
 1. Back up your server before trying the mod. Old gameplay worlds are deleted
    after a successful reset.
-2. Put `hardcorereset-1.0.5.jar` in the Fabric server's `mods/` directory alongside
+2. Put `hardcorereset-1.0.6.jar` in the Fabric server's `mods/` directory alongside
    **Fabric API 0.165.0+26.3 or newer for Minecraft 26.3**. Fantasy, the runtime-world library, is already
    bundled inside the mod JAR; you do not need a separate Fantasy download.
 3. Use **Java 25** and keep the vanilla Nether and End enabled. Set
@@ -44,6 +44,31 @@ The build uses a pinned Fabric API version for reproducible downloads. Its
 separate runtime minimum allows newer releases. Version 1.0.5 is checked against
 both 0.165.0+26.3 and 0.165.2+26.3; a future breaking API change may still need a
 mod update.
+
+## Death counter
+
+The built-in counter tracks actual player deaths across runs and ordinary server
+restarts. New players start at zero. It appears in the sidebar automatically if
+that sidebar is free. Hiding it keeps counting; show/hide is saved by Minecraft.
+These shortcuts require operator level 2 or higher, or the server console:
+
+| Command | Action |
+| --- | --- |
+| `/scoreboard show` | Show the death counter in the sidebar |
+| `/scoreboard hide` | Hide the death counter |
+| `/scoreboard reset` | Set all tracked death counts to zero, including offline players |
+| `/scoreboard reset <player>` | Reset one username's death count |
+| `/scoreboard set <player> <count>` | Correct a username's count; nonnegative integer |
+| `/scoreboard get <player>` | Read one player's count |
+| `/scoreboard list` | List tracked death counts |
+| `/scoreboard help` | Show shortcut help |
+
+Player arguments are literal usernames, including offline usernames. These commands
+manage only `hardcorereset_deaths`; other objectives remain intact. Vanilla
+`/scoreboard objectives` and `/scoreboard players` commands still work. Showing the
+counter selects it as the sidebar objective; hiding it leaves a different currently
+displayed objective alone. The counter starts tracking when this version is installed;
+it does not import earlier deaths.
 
 ## Choose the next map's seed
 
@@ -147,7 +172,7 @@ Select JDK 25 using `JAVA_HOME`, then:
 ```
 
 Windows: `gradlew.bat build`. The installable artifact is
-`build/libs/hardcorereset-1.0.5.jar`, not the sources JAR.
+`build/libs/hardcorereset-1.0.6.jar`, not the sources JAR.
 
 CI builds against both the minimum and current Fabric API versions.
 The build compiles the Minecraft integration, runs 21 standalone controller/state

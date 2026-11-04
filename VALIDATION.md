@@ -1,3 +1,12 @@
+# 1.0.6 validation
+
+Java 25 build and 21 controller/state tests passed. Four next-seed command checks
+passed. DeathScoreboardTest uses Minecraft’s real Scoreboard and Brigadier dispatcher:
+vanilla death counting, operator denial, vanilla command subtree preservation,
+offline/all/single-player resets, hide/show, hidden counting, unrelated-objective
+isolation, negative input rejection, and get/list/help execution all passed.
+No additional live-server or graphical-client session was run for this version.
+
 # Release validation
 
 ## 1.0.5 One-shot next-map seeds

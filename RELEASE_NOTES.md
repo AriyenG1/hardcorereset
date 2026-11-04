@@ -1,23 +1,23 @@
-One-shot map seeds and a quieter reset completion for Minecraft 26.3.
+Persistent death counter and operator scoreboard shortcuts for Minecraft 26.3.
 
-Operators can run `/nextseed <seed>` during an active run. The next reset uses
-that seed for all three dimensions. Later resets use random seeds unless the
-command is run again. Numeric seeds (including zero and negatives) and text seeds
-follow Minecraft's world-creation rules. The last queued value wins.
+Commands (operator level 2+ or console):
+- `/scoreboard show` / `/scoreboard hide`: control the sidebar; hidden scores still count.
+- `/scoreboard reset`: reset all tracked death counts, including offline players, to zero.
+- `/scoreboard reset <player>`: reset one literal username.
+- `/scoreboard set <player> <count>`: set a nonnegative count.
+- `/scoreboard get <player>` / `/scoreboard list` / `/scoreboard help`.
 
-The command requires operator permission level 1 or higher and also works from
-the server console. Set the seed before the countdown starts; generation is
-already in progress during a reset. Generation/transfer retries retain the
-selected seed. Queued seeds are held in memory and clear on server restart.
+The counter uses vanilla deathCount, persists across run resets and server restarts,
+and begins tracking upon installation. New joins get a zero entry. Other objectives
+and vanilla scoreboard commands are preserved. The sidebar appears automatically
+on first setup if it is free. Show replaces the sidebar selection; hide only clears
+it when the Hardcore Reset counter is displayed. No extra death-counter mod is needed.
 
-The "New world ready!" title is removed. Existing reset titles clear when players
-arrive in the new map; countdown and failure titles remain.
+Update: back up, stop the server once, replace the old JAR with hardcorereset-1.0.6.jar,
+and restart. Keep world/player files. Requires Minecraft 26.3, Java 25+, Fabric Loader
+0.20.1+, and Fabric API 0.165.0+26.3 or newer for Minecraft 26.3. Fantasy is bundled.
 
-Update: stop the server, replace the old mod JAR with hardcorereset-x.x.x.jar,
-and restart. Keep existing world/player files. Requires exactly Minecraft 26.3,
-Java 25+, Fabric Loader 0.20.1+, and Fabric API 0.165.0+26.3 or newer for Minecraft
-26.3. Fantasy remains bundled; the server bundle includes Fabric API 0.165.2+26.3.
-
-Validation: Java 25 builds with both supported Fabric API versions, 21 controller/state
-tests, and four command integration checks using Minecraft's dispatcher and permission
-APIs. No new live-server or graphical-client session was run.
+Validation: build, 21 controller/state tests, four next-seed command checks, and a
+Minecraft scoreboard/dispatcher integration test covering death increments, permissions,
+offline and single-player resets, hidden counting, other-objective isolation, vanilla
+command merging, and invalid negative input. No additional live-server session was run.

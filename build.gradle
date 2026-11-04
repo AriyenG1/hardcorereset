@@ -78,3 +78,11 @@ tasks.register('nextSeedCommandTest', JavaExec) {
     javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
 }
 tasks.named('check') { dependsOn 'nextSeedCommandTest' }
+
+tasks.register('deathScoreboardTest', JavaExec) {
+    dependsOn 'protocolSmokeClasses'
+    classpath = sourceSets.protocolSmoke.runtimeClasspath
+    mainClass = 'DeathScoreboardTest'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+}
+tasks.named('check') { dependsOn 'deathScoreboardTest' }

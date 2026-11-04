@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.6
+
+- Built-in persistent vanilla death counter across runs and restarts.
+- Add operator `/scoreboard show`, `hide`, `reset [player]`, `set <player> <count>`,
+  `get <player>`, `list`, and `help` shortcuts.
+- Preserve unrelated objectives and vanilla scoreboard commands. Hide/show state
+  persists; offline players are included in a full counter reset.
+
 ## 1.0.5
 
 - Add operator-only `/nextseed <seed>` for the next map, then return to random seeds.

@@ -35,6 +35,7 @@ public final class HardcoreReset implements ModInitializer {
     public void onInitialize() {
         instance = this;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            DeathScoreboard.ensure(server.getScoreboard());
             worlds = new RunWorlds(server);
             controller = new RoundController<>(worlds, System::nanoTime);
             controller.start();
@@ -67,7 +68,12 @@ public final class HardcoreReset implements ModInitializer {
                 }
             }
         });
-        ServerPlayerEvents.JOIN.register(this::onJoin);
+        ServerPlayerEvents.JOIN.register(player -> {
+            var board = player.level().getServer().getScoreboard();
+            board.getOrCreatePlayerScore(player, DeathScoreboard.ensure(board)).add(0);
+            onJoin(player);
+        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> DeathScoreboard.register(dispatcher));
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> onJoin(newPlayer));
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) ->
                 NextSeedCommand.register(dispatcher, seed -> controller != null && controller.queueNextSeed(seed)));

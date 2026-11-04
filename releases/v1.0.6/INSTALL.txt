@@ -1,0 +1,1 @@
+Replace the old mod JAR with hardcorereset-1.0.6.jar while the server is stopped. Keep world/player files. Java 25+, Minecraft 26.3, Fabric Loader 0.20.1+, Fabric API 0.165.0+26.3 or newer for 26.3. The bundle includes Fabric API. See README for scoreboard commands (operator level 2+).
