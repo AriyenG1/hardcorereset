@@ -1,0 +1,8 @@
+Stop the server and replace the old Hardcore Reset JAR with hardcorereset-1.0.7.jar.
+Keep your existing world, player files, settings, and death counts; no reset is needed.
+Restart and relight your existing valid obsidian portal with flint and steel or a fire charge.
+
+Requires Minecraft 26.3, Java 25+, Fabric Loader 0.20.1+, and Fabric API
+0.165.0+26.3 or newer built for Minecraft 26.3. Fantasy is bundled inside the mod.
+The optional server bundle contains the mod and Fabric API 0.165.2+26.3.
+Copy both JARs to mods/, replacing older copies; keep only one of each mod/API.

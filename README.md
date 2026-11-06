@@ -16,7 +16,7 @@ Download the JAR or the ZIP with Fabric API from the
 
 1. Back up your server before trying the mod. Old gameplay worlds are deleted
    after a successful reset.
-2. Put `hardcorereset-1.0.6.jar` in the Fabric server's `mods/` directory alongside
+2. Put `hardcorereset-1.0.7.jar` in the Fabric server's `mods/` directory alongside
    **Fabric API 0.165.0+26.3 or newer for Minecraft 26.3**. Fantasy, the runtime-world library, is already
    bundled inside the mod JAR; you do not need a separate Fantasy download.
 3. Use **Java 25** and keep the vanilla Nether and End enabled. Set
@@ -41,7 +41,7 @@ because their version numbers changed. Do not install Fabric API for a different
 Minecraft version or keep multiple Fabric API JARs in `mods/`.
 
 The build uses a pinned Fabric API version for reproducible downloads. Its
-separate runtime minimum allows newer releases. Version 1.0.5 is checked against
+separate runtime minimum allows newer releases. Version 1.0.7 is checked against
 both 0.165.0+26.3 and 0.165.2+26.3; a future breaking API change may still need a
 mod update.
 
@@ -115,6 +115,11 @@ Nether/End portals routed into the current run. Minecraft 26.3 initializes and
 saves the dragon fight from the End dimension type. The run's End portal returns
 players to a valid current-run bed/anchor or the current-run spawn.
 
+Version 1.0.7 fixes lighting Nether portals in the run's Overworld and Nether.
+Use a normal obsidian frame and flint and steel or a fire charge. Travel keeps
+Minecraft's normal coordinate scaling and returns to the same run. Existing
+runs work after updating; relight any existing valid frame that failed to activate.
+
 ## Saves and player state
 
 The server root save stays open as infrastructure. Each run gets new folders:
@@ -172,12 +177,18 @@ Select JDK 25 using `JAVA_HOME`, then:
 ```
 
 Windows: `gradlew.bat build`. The installable artifact is
-`build/libs/hardcorereset-1.0.6.jar`, not the sources JAR.
+`build/libs/hardcorereset-1.0.7.jar`, not the sources JAR.
 
 CI builds against both the minimum and current Fabric API versions.
 The build compiles the Minecraft integration, runs 21 standalone controller/state
 tests and four Minecraft command checks, and compiles the optional protocol smoke client. The standalone tests can
 also run directly with `./tools/test-controller.sh`.
+
+`./gradlew runPortalTest` runs the portal integration suite with Fabric mixins
+on a disposable localhost server in `build/portal-test-server/`. It checks real
+flint-and-steel and fire-charge ignition, both frame orientations and bottom/side
+clicks, invalid frames, ordinary fire, dimension restrictions, and scaled entity
+travel to the paired Nether and back. The test mod is excluded from release JARs.
 
 Version 1.0.1 additionally passed three live resets, repeated deaths of the same
 player, recovery of an actual legacy dead-player save and a reconstructed corrupt

@@ -1,23 +1,23 @@
-Persistent death counter and operator scoreboard shortcuts for Minecraft 26.3.
+Fix Nether portal ignition in Hardcore Reset's custom run dimensions for Minecraft 26.3.
 
-Commands (operator level 2+ or console):
-- `/scoreboard show` / `/scoreboard hide`: control the sidebar; hidden scores still count.
-- `/scoreboard reset`: reset all tracked death counts, including offline players, to zero.
-- `/scoreboard reset <player>`: reset one literal username.
-- `/scoreboard set <player> <count>`: set a nonnegative count.
-- `/scoreboard get <player>` / `/scoreboard list` / `/scoreboard help`.
+Nether portals now light normally in the active run's Overworld and Nether using
+flint and steel or fire charges. The shared fire-placement check recognizes the
+run's paired dimensions. Travel still uses vanilla portal placement and coordinate
+scaling, and return portals lead to the same run's Overworld.
 
-The counter uses vanilla deathCount, persists across run resets and server restarts,
-and begins tracking upon installation. New joins get a zero entry. Other objectives
-and vanilla scoreboard commands are preserved. The sidebar appears automatically
-on first setup if it is free. Show replaces the sidebar selection; hide only clears
-it when the Hardcore Reset counter is displayed. No extra death-counter mod is needed.
+Existing runs, seeds, player data, death counts, and settings are preserved. No world
+reset or migration is needed. Stop the server, replace the old Hardcore Reset JAR
+with hardcorereset-1.0.7.jar, restart, and relight your existing valid portal frame.
+Keep only one version of the mod in mods/.
 
-Update: back up, stop the server once, replace the old JAR with hardcorereset-1.0.6.jar,
-and restart. Keep world/player files. Requires Minecraft 26.3, Java 25+, Fabric Loader
-0.20.1+, and Fabric API 0.165.0+26.3 or newer for Minecraft 26.3. Fantasy is bundled.
+Requires Minecraft 26.3, Java 25+, Fabric Loader 0.20.1+, and Fabric API
+0.165.0+26.3 or newer built for Minecraft 26.3. Fantasy is bundled. The optional
+server bundle includes Fabric API 0.165.2+26.3; avoid duplicate API JARs.
 
-Validation: build, 21 controller/state tests, four next-seed command checks, and a
-Minecraft scoreboard/dispatcher integration test covering death increments, permissions,
-offline and single-player resets, hidden counting, other-objective isolation, vanilla
-command merging, and invalid negative input. No additional live-server session was run.
+Validation: Java 25 build, all 21 controller/state tests, next-seed command and death
+scoreboard checks, and real Fabric server portal integration tests with both
+Fabric API 0.165.0+26.3 and 0.165.2+26.3. The portal suite checks both ignition items,
+both frame orientations, bottom and side clicks, invalid frames, ordinary fire,
+End/unrelated-dimension restrictions, and scaled entity round trips through the run
+and vanilla portals. Removing the ignition fix reproduces the reported failure.
+These are server checks; graphical-client rendering was not tested.

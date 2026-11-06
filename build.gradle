@@ -86,3 +86,51 @@ tasks.register('deathScoreboardTest', JavaExec) {
     javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
 }
 tasks.named('check') { dependsOn 'deathScoreboardTest' }
+
+// Opt-in integration tests run real fire/item/portal code with Fabric's mixins applied.
+sourceSets {
+    portalTest {
+        java.srcDir 'tests/portal/java'
+        resources.srcDir 'tests/portal/resources'
+        compileClasspath += sourceSets.main.runtimeClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods {
+        hardcorereset { sourceSet sourceSets.main }
+        portal_test { sourceSet sourceSets.portalTest }
+    }
+    runs {
+        portalTest {
+            server()
+            name = 'Portal integration tests'
+            source sourceSets.portalTest
+            runDir 'build/portal-test-server'
+            programArg 'nogui'
+        }
+    }
+}
+tasks.named('runPortalTest') {
+    doFirst {
+        def directory = file('build/portal-test-server')
+        directory.mkdirs()
+        new File(directory, 'eula.txt').text = 'eula=true\n'
+        new File(directory, 'server.properties').text = '''server-ip=127.0.0.1
+server-port=0
+online-mode=false
+view-distance=2
+simulation-distance=2
+pause-when-empty-seconds=0
+max-tick-time=0
+level-seed=1
+'''
+        new File(directory, 'portal-test-passed.txt').delete()
+    }
+    doLast {
+        if (!file('build/portal-test-server/portal-test-passed.txt').exists()) {
+            throw new GradleException('Portal integration tests did not pass; inspect the server log.')
+        }
+    }
+}
+tasks.named('check') { dependsOn 'compilePortalTestJava' }

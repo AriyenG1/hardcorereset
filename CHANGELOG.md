@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.7
+
+- Fix Nether portal ignition in the active run's custom Overworld and Nether.
+  Apply the existing run-dimension mapping to Minecraft's shared fire/portal
+  ignition check, including side clicks with flint and steel or fire charges.
+- Preserve vanilla frame validation, coordinate scaling, paired destinations,
+  ordinary fire, and the restriction against Nether portals in the End or
+  unrelated custom dimensions. Existing runs need no migration or reset.
+- Add a real Fabric server regression suite for ignition and round-trip travel.
+
 ## 1.0.6
 
 - Built-in persistent vanilla death counter across runs and restarts.

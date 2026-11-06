@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "portal_test",
+  "version": "1.0.0",
+  "name": "Hardcore Reset portal integration tests",
+  "environment": "server",
+  "entrypoints": {"main": ["PortalIntegrationTest"]},
+  "depends": {"hardcorereset": "*"}
+}

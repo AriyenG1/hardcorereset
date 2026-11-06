@@ -1,3 +1,37 @@
+# 1.0.7 portal ignition regression
+
+- Removing only `PortalIgnitionMixin` from the mixin list reproduced the reported
+  bug on a real Fabric server: a complete obsidian frame in the active run's
+  Overworld did not light with flint and steel. Restoring the mixin passed.
+- Java 25 `build runPortalTest` passed with Fabric API 0.165.0+26.3 and
+  0.165.2+26.3. Builds include the existing 21 controller/state tests, four
+  next-seed command checks, and the death-scoreboard/dispatcher checks.
+- The portal test mod runs Minecraft's actual item use, fire placement, frame
+  validation, portal destination selection, and entity teleportation with Fabric
+  mixins applied. It is not included in the distributed mod JAR.
+- Across the active run's three worlds, the vanilla three worlds, and an unrelated
+  custom Overworld, all 56 valid-frame ignition cases passed: flint and steel and
+  fire charges, X/Z orientations, and bottom/unsupported-upper-side clicks.
+  Portals formed only in the run and vanilla Overworld/Nether; the run/vanilla End
+  and unrelated custom world stayed restricted. All 28 broken-frame checks and
+  ordinary-fire placement/survival checks in all seven worlds passed.
+- Actual pig entities completed scaled Overworld-to-Nether-to-Overworld trips in
+  both the active run and vanilla dimensions. The checks assert the paired target
+  world and portal coordinates in both directions, as well as actual transfers.
+- Repeated tests reopened the same saved active run without resetting its ID.
+  A graphical client and a human player's portal animation were not tested.
+
+Reproduce with JDK 25:
+
+```sh
+./gradlew build runPortalTest --no-daemon
+./gradlew build runPortalTest --no-daemon -Pfabric_api_version=0.165.0+26.3
+```
+
+The disposable offline-mode test server binds only to localhost on an ephemeral
+port and stores its world under `build/portal-test-server/`. CI runs the portal
+suite for both supported API versions.
+
 # 1.0.6 validation
 
 Java 25 build and 21 controller/state tests passed. Four next-seed command checks
